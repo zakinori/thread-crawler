@@ -72,14 +72,14 @@ LOG_FORMATTERS = {
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 # ミドルウェア設定
 DOWNLOADER_MIDDLEWARES = {
-    'crawler.middlewares.RotateUserAgentMiddleware': 543,
-    'crawler.middlewares.CustomCookiesMiddleware': 544,
-    'crawler.middlewares.CustomRetryMiddleware': 545,
+    'crawler.spiders.middlewares.RotateUserAgentMiddleware': 543,
+    'crawler.spiders.middlewares.CustomCookiesMiddleware': 544,
+    'crawler.spiders.middlewares.CustomRetryMiddleware': 545,
 }
 
 # 項目パイプライン設定
 ITEM_PIPELINES = {
-    'crawler.pipelines.JsonWriterPipeline': 300,
+    'crawler.spiders.pipelines.JsonWriterPipeline': 300,
 }
 
 # データ保存ディレクトリ設定

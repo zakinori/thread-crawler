@@ -2,7 +2,7 @@ import scrapy
 import datetime
 import re
 from pathlib import Path
-from crawler.items import ThreadItem, ResponseItem
+from crawler.spiders.items import ThreadItem, ResponseItem
 import json
 import os
 import glob
