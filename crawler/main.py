@@ -19,10 +19,6 @@ from crawler.spiders import ThreadSpider
 
 
 # 環境設定
-# from pathlib import Path
-# project_root = str(Path(__file__).parent.parent.absolute())
-# if project_root not in sys.path:
-#     sys.path.insert(0, project_root)
 os.environ.setdefault('SCRAPY_SETTINGS_MODULE', 'crawler.settings')
 
 
@@ -65,10 +61,10 @@ def setup_logging(settings):
     scrapy_logger.addHandler(console_handler)
 
 
-def load_config():
-    """設定ファイルの読み込み"""
-    config_path = Path('crawler/config/boards.json')
-    with open(config_path, 'r', encoding='utf-8') as f:
+def load_boards():
+    """ボード設定ファイルの読み込み"""
+    boards_path = Path('crawler/boards.json')
+    with open(boards_path, 'r', encoding='utf-8') as f:
         return json.load(f)
 
 
@@ -86,18 +82,13 @@ def main():
         # コマンドライン引数のパース
         args = parse_arguments()
         
-        # 設定の読み込み
-        config = load_config()
+        # ボード設定の読み込み
+        boards = load_boards()
         settings = get_project_settings()
         
         # ログ設定の初期化
         setup_logging(settings)
         logger = logging.getLogger(__name__)
-        
-        # 設定を上書き
-        settings.set('DOWNLOAD_DELAY', config['settings']['download_delay'])
-        settings.set('CONCURRENT_REQUESTS_PER_DOMAIN', config['settings']['concurrent_requests_per_domain'])
-        settings.set('ROBOTSTXT_OBEY', True)
         
         if args.limit:
             settings.set('CLOSESPIDER_ITEMCOUNT', args.limit)
@@ -106,12 +97,12 @@ def main():
         process = CrawlerProcess(settings)
         
         # 各ボードに対してスパイダーを実行
-        for board in config['boards']:
+        for board in boards['boards']:
             logger.info(f'クローラーを開始します: {board["name"]} ({board["url"]})')
             process.crawl(
                 ThreadSpider,
                 board=board,
-                min_res_count=config['settings']['min_res_count']
+                min_res_count=settings.get('MIN_RES_COUNT')
             )
         
         # クローラーの実行

@@ -1,9 +1,4 @@
 {
-    "settings": {
-        "min_res_count": 500,
-        "download_delay": 5,
-        "concurrent_requests_per_domain": 2
-    },
     "boards": [
         {
             "domain": "XXXX",

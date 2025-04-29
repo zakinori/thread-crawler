@@ -27,7 +27,7 @@ wheels/
 env/
 venv/
 ENV/
-crawler/config/boards.json
+crawler/boards.json
 
 # Data directories
 data/*
