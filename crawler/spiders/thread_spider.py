@@ -23,14 +23,22 @@ class ThreadSpider(scrapy.Spider):
         
         # データ保存用のディレクトリを設定
         self.base_dir = Path('data')
-        self.current_date = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-        self.session_dir = self.base_dir / f"{self.board['domain']}_{self.board['name']}" / self.current_date
+        self.session_dir = self.base_dir / f"{self.board['domain']}_{self.board['name']}"
         self.thread_list_file = self.session_dir / 'thread_list.json'
         self.thread_data_dir = self.session_dir / 'thread_data'
+        self.update_log_file = self.session_dir / 'update.log'
         
         # ディレクトリを作成
         self.session_dir.mkdir(parents=True, exist_ok=True)
         self.thread_data_dir.mkdir(parents=True, exist_ok=True)
+        
+        # 既存のスレッド一覧を読み込む
+        self.existing_threads = {}
+        if self.thread_list_file.exists():
+            with open(self.thread_list_file, 'r', encoding='utf-8') as f:
+                existing_list = json.load(f)
+                for thread in existing_list:
+                    self.existing_threads[thread['url']] = thread
     
     def parse(self, response):
         """スレッド一覧ページのパース"""
@@ -38,6 +46,7 @@ class ThreadSpider(scrapy.Spider):
         
         # スレッド一覧を保存
         thread_list = []
+        current_time = datetime.datetime.now().isoformat()
         
         # スレッド一覧から各スレッドへのリンクとレス数を抽出
         for thread in response.css('small#trad a'):
@@ -64,27 +73,54 @@ class ThreadSpider(scrapy.Spider):
                         if not url.startswith('http'):
                             url = response.urljoin(url)
                         
+                        # /l50を削除して全スレッドの内容を取得
+                        url = url.replace('/l50', '')
+                        
                         thread_info = {
                             'title': title,
                             'url': url,
                             'res_count': count
                         }
-                        thread_list.append(thread_info)
                         
-                        self.logger.info(f'スレッドを追加: {title} (レス数: {count})')
-                        
-                        # スレッドのクロールをリクエスト
-                        yield scrapy.Request(
-                            url=url,
-                            callback=self.parse_thread,
-                            meta={'thread': thread_info}
-                        )
+                        # 既存のスレッドかチェック
+                        if url in self.existing_threads:
+                            existing_thread = self.existing_threads[url]
+                            # レス数が増えている場合のみクロール
+                            if count > existing_thread['res_count']:
+                                self.logger.info(f'既存のスレッドのレス数が増加: {title} (前回: {existing_thread["res_count"]}, 現在: {count})')
+                                # 更新ログに記録
+                                with open(self.update_log_file, 'a', encoding='utf-8') as f:
+                                    f.write(f"{current_time} UPD {title} {url}\n")
+                                thread_list.append(thread_info)
+                                yield scrapy.Request(
+                                    url=url,
+                                    callback=self.parse_thread,
+                                    meta={'thread': thread_info}
+                                )
+                            else:
+                                self.logger.info(f'既存のスレッドをスキップ: {title} (レス数: {count})')
+                        else:
+                            thread_list.append(thread_info)
+                            self.logger.info(f'新しいスレッドを追加: {title} (レス数: {count})')
+                            # 更新ログに記録
+                            with open(self.update_log_file, 'a', encoding='utf-8') as f:
+                                f.write(f"{current_time} INS {title} {url}\n")
+                            yield scrapy.Request(
+                                url=url,
+                                callback=self.parse_thread,
+                                meta={'thread': thread_info}
+                            )
         
         # スレッド一覧が空でない場合のみ保存
         if thread_list:
+            # 既存のスレッド一覧と新しいスレッド一覧をマージ
+            merged_threads = list(self.existing_threads.values()) + thread_list
+            # URLで重複を除去
+            unique_threads = {thread['url']: thread for thread in merged_threads}.values()
+            
             # スレッド一覧をJSONファイルに保存
             with open(self.thread_list_file, 'w', encoding='utf-8') as f:
-                json.dump(thread_list, f, ensure_ascii=False, indent=2)
+                json.dump(list(unique_threads), f, ensure_ascii=False, indent=2)
             
             self.logger.info(f'スレッド一覧を {self.thread_list_file} に保存しました')
         
@@ -167,12 +203,41 @@ class ThreadSpider(scrapy.Spider):
         thread['responses'] = responses
         
         # スレッドデータを保存
-        thread_id = thread['url'].split('/')[-2]
+        thread_id = re.search(r'/(\d+)/?$', thread['url'])
+        if thread_id:
+            thread_id = thread_id.group(1)
+        else:
+            self.logger.error(f'スレッドIDの取得に失敗: {thread["url"]}')
+            return
+        
         thread_data_file = self.thread_data_dir / f'thread_{thread_id}.json'
         with open(thread_data_file, 'w', encoding='utf-8') as f:
             json.dump(thread, f, ensure_ascii=False, indent=2)
         
         self.logger.info(f'スレッドデータを {thread_data_file} に保存しました')
+        
+        # # 最初のレスに前スレへのリンクがあるかチェック
+        # if responses and responses[0]['number'] == 1:
+        #     first_response_text = responses[0]['text']
+        #     # 前スレへのリンクを検索（例：https://mi.5ch.net/test/read.cgi/news4vip/1745218274/）
+        #     prev_thread_match = re.search(r'https?://[^\s]+/test/read\.cgi/[^\s]+/\d+/', first_response_text)
+        #     if prev_thread_match:
+        #         prev_thread_url = prev_thread_match.group(0)
+        #         self.logger.info(f'前スレを発見: {prev_thread_url}')
+                
+        #         # 前スレの情報を作成
+        #         prev_thread_info = {
+        #             'title': f"前スレ: {thread['title']}",
+        #             'url': prev_thread_url,
+        #             'res_count': 0  # レス数は後で更新
+        #         }
+                
+        #         # 前スレのクロールをリクエスト
+        #         yield scrapy.Request(
+        #             url=prev_thread_url,
+        #             callback=self.parse_thread,
+        #             meta={'thread': prev_thread_info}
+        #         )
         
         # スレッドアイテムを生成
         thread_item = ThreadItem()
