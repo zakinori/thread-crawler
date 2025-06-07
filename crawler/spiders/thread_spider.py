@@ -36,8 +36,8 @@ class ThreadSpider(scrapy.Spider):
         self.existing_threads = {}
         if self.thread_list_file.exists():
             with open(self.thread_list_file, 'r', encoding='utf-8') as f:
-                existing_list = json.load(f)
-                for thread in existing_list:
+                data = json.load(f)
+                for thread in data['threads']:
                     self.existing_threads[thread['url']] = thread
     
     def parse(self, response):
@@ -118,9 +118,9 @@ class ThreadSpider(scrapy.Spider):
             # URLで重複を除去
             unique_threads = {thread['url']: thread for thread in merged_threads}.values()
             
-            # スレッド一覧をJSONファイルに保存
+            # スレッド一覧をJSONファイルに保存（新しい形式で保存）
             with open(self.thread_list_file, 'w', encoding='utf-8') as f:
-                json.dump(list(unique_threads), f, ensure_ascii=False, indent=2)
+                json.dump({"threads": list(unique_threads)}, f, ensure_ascii=False, indent=2)
             
             self.logger.info(f'スレッド一覧を {self.thread_list_file} に保存しました')
         
