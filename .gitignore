@@ -28,6 +28,7 @@ env/
 venv/
 ENV/
 crawler/boards.json
+urls.txt
 
 # Data directories
 data/*
