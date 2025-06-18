@@ -49,6 +49,9 @@ https://viper.2ch.sc/news4vip/subback.html
 https://nozomi.2ch.sc/be/subback.html
 https://nozomi.2ch.sc/retro/subback.html
 https://ikura.2ch.sc/oversea/subback.html
+https://toro.2ch.sc/occult/subback.html
+https://maguro.2ch.sc/sfe/subback.html
+https://nozomi.2ch.sc/kankon/subback.html
 ```
 
 ## 使用方法
@@ -58,10 +61,4 @@ https://ikura.2ch.sc/oversea/subback.html
 ```bash
 # 実行コマンド
 PYTHONPATH=$PYTHONPATH:. python3 crawler/main.py
-
-PYTHONPATH=$PYTHONPATH:. python3 crawler/url_crawler.py --domain ikura.2ch.sc --name oversea
-PYTHONPATH=$PYTHONPATH:. python3 crawler/url_crawler.py --domain maguro.2ch.sc --name fortune
-PYTHONPATH=$PYTHONPATH:. python3 crawler/url_crawler.py --domain nozomi.2ch.sc --name be
-PYTHONPATH=$PYTHONPATH:. python3 crawler/url_crawler.py --domain nozomi.2ch.sc --name retro
-PYTHONPATH=$PYTHONPATH:. python3 crawler/url_crawler.py --domain viper.2ch.sc --name news4vip
 ```
