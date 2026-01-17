@@ -56,9 +56,38 @@ https://nozomi.2ch.sc/kankon/subback.html
 
 ## 使用方法
 
-### 基本的な実行方法
+### 推奨: バックアップ + クローラー実行（一括実行）
+
+バックアップ処理とクローラー実行を順番に実行する場合は、以下の方法を使用できます：
+
+#### シェルスクリプトを使用（推奨）
+
+```bash
+# デフォルト設定で実行
+./run_crawler.sh
+
+# クローラーの引数を渡す場合
+./run_crawler.sh --limit 10 --days 7
+```
+
+### 個別実行
+
+#### 基本的なクローラー実行
 
 ```bash
 # 実行コマンド
 PYTHONPATH=$PYTHONPATH:. python3 crawler/main.py
+```
+
+#### バックアップスクリプト
+
+```bash
+# デフォルト設定（3カ月前より古いデータをバックアップ）
+python3 backup_old_threads.py
+
+# カスタム設定
+python3 backup_old_threads.py --data-dir data --months 3
+
+# 例: 6カ月前より古いデータをバックアップ
+python3 backup_old_threads.py --months 6
 ```
