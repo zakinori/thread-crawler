@@ -28,6 +28,7 @@ env/
 venv/
 ENV/
 crawler/boards.json
+crawler/series.json
 urls.txt
 
 # Data directories
