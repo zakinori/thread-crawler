@@ -7,11 +7,11 @@ import json
 import os
 
 
-class UrlThreadSpider(scrapy.Spider):
-    name = "url_thread_spider"
+class SeriesThreadSpider(scrapy.Spider):
+    name = "series_thread_spider"
     
     def __init__(self, board=None, min_res_count=100, *args, **kwargs):
-        super(UrlThreadSpider, self).__init__(*args, **kwargs)
+        super(SeriesThreadSpider, self).__init__(*args, **kwargs)
         
         # 設定値を取得
         self.board = board
@@ -20,23 +20,25 @@ class UrlThreadSpider(scrapy.Spider):
         # スタートURLを設定
         self.start_urls = [self.board['url']]
         
-        # データ保存用のディレクトリを設定
+        # データ保存用のディレクトリを設定（thread_data_dir が指定されていればシリーズ用）
         self.base_dir = Path('data')
-        self.session_dir = self.base_dir / f"{self.board['domain']}_{self.board['name']}"
-        self.thread_list_file = self.session_dir / 'thread_list.json'
-        self.thread_data_dir = self.session_dir / 'thread_data'
+        if self.board.get('thread_data_dir') is not None:
+            self.thread_data_dir = Path(self.board['thread_data_dir'])
+            self.thread_list_file = None  # シリーズ用ではスレ一覧は更新しない
+            self.existing_threads = {}
+        else:
+            self.session_dir = self.base_dir / f"{self.board['domain']}_{self.board['name']}"
+            self.thread_list_file = self.session_dir / 'thread_list.json'
+            self.thread_data_dir = self.session_dir / 'thread_data'
+            self.session_dir.mkdir(parents=True, exist_ok=True)
+            self.existing_threads = {}
+            if self.thread_list_file.exists():
+                with open(self.thread_list_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    for thread in data['threads']:
+                        self.existing_threads[thread['url']] = thread
         
-        # ディレクトリを作成
-        self.session_dir.mkdir(parents=True, exist_ok=True)
         self.thread_data_dir.mkdir(parents=True, exist_ok=True)
-        
-        # 既存のスレッド一覧を読み込む
-        self.existing_threads = {}
-        if self.thread_list_file.exists():
-            with open(self.thread_list_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                for thread in data['threads']:
-                    self.existing_threads[thread['url']] = thread
     
     def parse(self, response):
         """スレッド詳細ページのパース"""
@@ -129,8 +131,8 @@ class UrlThreadSpider(scrapy.Spider):
         
         self.logger.info(f'スレッドデータを {thread_data_file} に保存しました')
         
-        # スレッド一覧を更新
-        if thread['url'] not in self.existing_threads:
+        # スレッド一覧を更新（thread_list_file がある場合のみ）
+        if self.thread_list_file is not None and thread['url'] not in self.existing_threads:
             self.logger.info(f'新しいスレッドを追加: {thread["title"]} (レス数: {thread["res_count"]})')
             self.existing_threads[thread['url']] = thread
             
@@ -148,4 +150,4 @@ class UrlThreadSpider(scrapy.Spider):
         thread_item['crawled_at'] = datetime.datetime.now().isoformat()
         thread_item['responses'] = responses
         
-        yield thread_item 
+        yield thread_item

@@ -1,0 +1,26 @@
+{
+    "titleXXX": [
+        {
+            "serial": "1",
+            "subtitle": "YYY",
+            "url": "https://XXX/YYY/sample.html"
+        },
+        {
+            "serial": "2",
+            "subtitle": "YYY",
+            "url": "https://XXX/YYY/sample.html"
+        }
+    ],
+    "titlePPP": [
+        {
+            "serial": "1",
+            "subtitle": "ZZZ",
+            "url": "https://PPP/ZZZ/sample.html"
+        },
+        {
+            "serial": "2",
+            "subtitle": "ZZZ",
+            "url": "https://PPP/ZZZ/sample.html"
+        }
+    ]
+} 
