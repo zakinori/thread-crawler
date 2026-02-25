@@ -10,7 +10,7 @@ echo "=========================================="
 echo ""
 
 # バックアップ処理を実行
-echo "[1/3] 古いスレッドデータのバックアップを実行中..."
+echo "[1/4] 古いスレッドデータのバックアップを実行中..."
 python3 backup_old_threads.py
 if [ $? -ne 0 ]; then
     echo "エラー: バックアップ処理に失敗しました"
@@ -20,7 +20,7 @@ echo "バックアップ処理が完了しました"
 echo ""
 
 # クローラーを実行
-echo "[2/3] クローラーを実行中..."
+echo "[2/4] クローラーを実行中..."
 PYTHONPATH=$PYTHONPATH:. python3 crawler/main.py "$@"
 if [ $? -ne 0 ]; then
     echo "エラー: クローラー実行に失敗しました"
@@ -28,8 +28,17 @@ if [ $? -ne 0 ]; then
 fi
 echo ""
 
+# シンプルスクレイピングを実行（指定URLのみ1ページずつ）
+echo "[3/4] シンプルスクレイピングを実行中..."
+PYTHONPATH=$PYTHONPATH:. python3 crawler/simple_scrapy.py
+if [ $? -ne 0 ]; then
+    echo "エラー: シンプルスクレイピング実行に失敗しました"
+    exit 1
+fi
+echo ""
+
 # シリーズクローラーを実行
-echo "[3/3] シリーズクローラーを実行中..."
+echo "[4/4] シリーズクローラーを実行中..."
 PYTHONPATH=$PYTHONPATH:. python3 crawler/series_crawler.py
 if [ $? -ne 0 ]; then
     echo "エラー: シリーズクローラー実行に失敗しました"
