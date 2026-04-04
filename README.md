@@ -71,6 +71,8 @@ https://ikura.2ch.sc/oversea/subback.html
 https://toro.2ch.sc/occult/subback.html
 https://maguro.2ch.sc/sfe/subback.html
 https://nozomi.2ch.sc/kankon/subback.html
+https://ai.2ch.sc/newsplus/subback.html
+https://anago.2ch.sc/dqnplus/subback.html
 
 #### シンプルスクレイピング（指定URLのみ）
 
