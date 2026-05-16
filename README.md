@@ -11,6 +11,7 @@
 - JSONファイル形式でデータを保存
 - robots.txtに対応
 - スクレイピング間隔の設定による負荷軽減
+- HTTP API による単一 URL のシンプルスクレイピング（`data/` へは保存しない）
 
 ## 環境構築
 
@@ -47,6 +48,41 @@ pip install -e .
 ```
 
 ※出力先: data
+
+### HTTP API（単一 URL スクレイプ）
+
+`data/` には書き込まず、レスポンスの JSON のみでスレッドデータを返します。内部は `crawler/scrape_one_for_api.py` が子プロセスで実行されます。
+
+#### 環境変数
+
+| 変数 | 説明 |
+|------|------|
+| `API_KEY` | 設定した場合、`X-API-Key` ヘッダと一致が必要 |
+| `API_SCRAPE_ALLOWED_HOST_SUFFIXES` | 許可ホスト（カンマ区切り）。未設定時は `.2ch.sc,2ch.sc` |
+| `API_SCRAPE_TIMEOUT_SEC` | スクレイプのタイムアウト秒（既定: 180） |
+
+#### 起動
+
+リポジトリルートで:
+
+```bash
+pip install -e .
+PYTHONPATH=. uvicorn api.main:app --host 0.0.0.0 --port 8000
+```
+
+#### リクエスト例
+
+```bash
+curl -sS -X POST "http://127.0.0.1:8000/scrape" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://viper.2ch.sc/test/read.cgi/news4vip/1771308334/"}'
+```
+
+#### ワーカーのみ CLI で実行
+
+```bash
+PYTHONPATH=. python3 -m crawler.scrape_one_for_api "https://..."
+```
 
 ### 個別実行
 
