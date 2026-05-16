@@ -6,18 +6,31 @@ from crawler.spiders.items import ThreadItem
 import json
 
 
+def _coerce_persist_to_disk(value, default=True):
+    """CLI の -a persist_to_disk=false など文字列でも正しく扱う。"""
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    return str(value).lower() in ("1", "true", "yes", "on")
+
+
 class SimpleScrapySpider(scrapy.Spider):
     name = "simple_scrapy_spider"
 
-    def __init__(self, url=None, thread_data_dir=None, *args, **kwargs):
+    def __init__(
+        self, url=None, thread_data_dir=None, persist_to_disk=True, *args, **kwargs
+    ):
         super(SimpleScrapySpider, self).__init__(*args, **kwargs)
 
         if not url or not url.strip():
             raise ValueError("url が指定されていません")
 
+        self.persist_to_disk = _coerce_persist_to_disk(persist_to_disk, default=True)
         self.start_urls = [url.strip()]
         self.thread_data_dir = Path(thread_data_dir or "data/simple")
-        self.thread_data_dir.mkdir(parents=True, exist_ok=True)
+        if self.persist_to_disk:
+            self.thread_data_dir.mkdir(parents=True, exist_ok=True)
 
     def parse(self, response):
         """スレッド詳細ページのパース（series_thread_spider と同一の抽出方法）"""
@@ -91,11 +104,11 @@ class SimpleScrapySpider(scrapy.Spider):
             self.logger.error(f"スレッドIDの取得に失敗: {thread['url']}")
             return
 
-        thread_data_file = self.thread_data_dir / f"thread_{thread_id}.json"
-        with open(thread_data_file, "w", encoding="utf-8") as f:
-            json.dump(thread, f, ensure_ascii=False, indent=2)
-
-        self.logger.info(f"スレッドデータを {thread_data_file} に保存しました")
+        if self.persist_to_disk:
+            thread_data_file = self.thread_data_dir / f"thread_{thread_id}.json"
+            with open(thread_data_file, "w", encoding="utf-8") as f:
+                json.dump(thread, f, ensure_ascii=False, indent=2)
+            self.logger.info(f"スレッドデータを {thread_data_file} に保存しました")
 
         thread_item = ThreadItem()
         thread_item["thread_id"] = thread_id

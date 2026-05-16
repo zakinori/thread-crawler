@@ -10,6 +10,8 @@ setup(
         "pytz>=2021.1",
         "beautifulsoup4>=4.9.3",
         "pandas>=1.3.0",
+        "fastapi>=0.100.0",
+        "uvicorn[standard]>=0.22.0",
     ],
     description="スレッドクローラー",
     keywords="crawler, scrapy",
