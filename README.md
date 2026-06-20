@@ -28,14 +28,13 @@ pip install -e .
 
 ## 使用方法
 
-### 推奨: バックアップ + クローラー実行（一括実行）
+### 推奨: クローラー実行（一括実行）
 
 `run_crawler.sh` は次の順で実行します：
 
-1. 古いスレッドデータのバックアップ
-2. ボードクローラー（`crawler/main.py`）… プレビュー数でスレッドを検出・収集
-3. シンプルスクレイピング（`crawler/simple_scrapy.py`）… 指定URLのみ1ページずつ収集
-4. シリーズクローラー（`crawler/series_crawler.py`）… シリーズ設定に基づく収集
+1. ボードクローラー（`crawler/main.py`）… プレビュー数でスレッドを検出・収集
+2. シンプルスクレイピング（`crawler/simple_scrapy.py`）… 指定URLのみ1ページずつ収集
+3. シリーズクローラー（`crawler/series_crawler.py`）… シリーズ設定に基づく収集
 
 #### シェルスクリプトを使用（推奨）
 
@@ -135,7 +134,21 @@ PYTHONPATH=$PYTHONPATH:. python3 crawler/series_crawler.py
 
 ※設定ファイル: crawler/series.json
 
-#### バックアップスクリプト
+#### データ復元スクリプト（必要時のみ）
+
+`_backup` から `data` へスレッドデータを復元する場合に使用します。通常のクローラー実行では不要です。
+
+```bash
+# dry-run（件数・上書き候補の確認）
+python3 restore_old_threads.py
+
+# 本実行
+python3 restore_old_threads.py --execute
+```
+
+#### バックアップスクリプト（現在は無効）
+
+`run_crawler.sh` からの自動バックアップは停止しています。手動で古いスレッドを `_backup` へ退避する場合のみ、以下を実行してください。
 
 ```bash
 # デフォルト設定（3カ月前より古いデータをバックアップ）
@@ -143,7 +156,4 @@ python3 backup_old_threads.py
 
 # カスタム設定
 python3 backup_old_threads.py --data-dir data --months 3
-
-# 例: 6カ月前より古いデータをバックアップ
-python3 backup_old_threads.py --months 6
 ```
