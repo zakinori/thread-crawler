@@ -60,15 +60,15 @@ deactivate
 ./run_crawler.sh --limit 10 --days 7
 ```
 
-**venv環境を構築している場合**
+**venv環境を構築している場合（参考）**
 
 ```bash
 # venv内に移動
 source .venv/bin/activate
-
 # スクリプトの実行
 ./run_crawler.sh
 ```
+※run_crawler.shは.venv/bin/python3を直接使うため、事前のsource .venv/bin/activateは不要です。
 
 ※出力先: data
 
@@ -170,3 +170,32 @@ python3 convert_encoding.py --src data --dst convert_data
 # 1ファイル
 python3 convert_encoding.py --src data/viper.2ch.sc_news4vip/thread_data/thread_xxx.json --dst convert_data
 ```
+
+## cron 設定（定期実行）
+
+`run_crawler.sh` はリポジトリルートへの移動と `.venv` 内の Python 利用をスクリプト内で行うため、cron から直接呼び出せます。  
+実行間隔の例: **毎週土曜日 12:00**
+
+### 前提
+
+- リポジトリ直下に `.venv` があり、`pip install -e .` 済みであること
+- `run_crawler.sh` に実行権限があること（`chmod +x run_crawler.sh`）
+
+### 設定手順
+
+```bash
+# エディタ起動
+crontab -e
+
+# 下記を追記
+0 12 * * 6 /home/ubuntu/thread-crawler/run_crawler.sh >> /home/ubuntu/cron.log 2>&1
+
+# 登録内容の確認
+crontab -l
+```
+
+| 項目 | 意味 |
+|------|------|
+| `0 12 * * 6` | 毎週土曜 12:00 |
+| スクリプトパス | 絶対パスで指定 |
+| `>> .../cron.log 2>&1` | 標準出力・標準エラーをログへ追記 |
