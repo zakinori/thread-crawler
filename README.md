@@ -157,3 +157,16 @@ PYTHONPATH=$PYTHONPATH:. python3 crawler/series_crawler.py
 ```
 
 ※設定ファイル: crawler/series.json
+
+## コンバート処理
+
+クロールしたスレッドデータの加工アプリがUTF-8未対応のためshift-JIS文字コード変換スクリプトを準備しました。  
+run_crawler.sh内で実行されますが、個別にも実行可能となります。
+
+```bash
+# 一括（今回実行済み）
+python3 convert_encoding.py --src data --dst convert_data
+
+# 1ファイル
+python3 convert_encoding.py --src data/viper.2ch.sc_news4vip/thread_data/thread_xxx.json --dst convert_data
+```
