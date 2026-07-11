@@ -72,41 +72,6 @@ source .venv/bin/activate
 
 ※出力先: data
 
-### HTTP API（単一 URL スクレイプ）
-
-`data/` には書き込まず、レスポンスの JSON のみでスレッドデータを返します。内部は `crawler/scrape_one_for_api.py` が子プロセスで実行されます。
-
-#### 環境変数
-
-| 変数 | 説明 |
-|------|------|
-| `API_KEY` | 設定した場合、`X-API-Key` ヘッダと一致が必要 |
-| `API_SCRAPE_ALLOWED_HOST_SUFFIXES` | 許可ホスト（カンマ区切り）。未設定時は `.2ch.sc,2ch.sc` |
-| `API_SCRAPE_TIMEOUT_SEC` | スクレイプのタイムアウト秒（既定: 180） |
-
-#### 起動
-
-リポジトリルートで:
-
-```bash
-pip install -e .
-PYTHONPATH=. uvicorn api.main:app --host 0.0.0.0 --port 8000
-```
-
-#### リクエスト例
-
-```bash
-curl -sS -X POST "http://127.0.0.1:8000/scrape" \
-  -H "Content-Type: application/json" \
-  -d '{"url":"https://viper.2ch.sc/test/read.cgi/news4vip/1771308334/"}'
-```
-
-#### ワーカーのみ CLI で実行
-
-```bash
-PYTHONPATH=. python3 -m crawler.scrape_one_for_api "https://..."
-```
-
 ### 個別実行
 
 #### 基本的なクローラー実行（ボード単位）
@@ -181,15 +146,9 @@ python3 convert_encoding.py --src data/viper.2ch.sc_news4vip/thread_data/thread_
 - リポジトリ直下に `.venv` があり、`pip install -e .` 済みであること
 - `run_crawler.sh` に実行権限があること（`chmod +x run_crawler.sh`）
 
-### 設定手順
+### 手順など
 
 ```bash
-# エディタ起動
-crontab -e
-
-# 下記を追記
-0 12 * * 6 /home/ubuntu/thread-crawler/run_crawler.sh >> /home/ubuntu/cron.log 2>&1
-
 # 登録内容の確認
 crontab -l
 ```
@@ -199,3 +158,56 @@ crontab -l
 | `0 12 * * 6` | 毎週土曜 12:00 |
 | スクリプトパス | 絶対パスで指定 |
 | `>> .../cron.log 2>&1` | 標準出力・標準エラーをログへ追記 |
+
+
+### HTTP API（単一 URL スクレイプ）
+
+`data/` には書き込まず、レスポンスの JSON のみでスレッドデータを返します。内部は `crawler/scrape_one_for_api.py` が子プロセスで実行されます（親プロセスと同じ Python = `.venv` を使用）。
+
+#### 前提
+
+- リポジトリ直下に `.venv` があり、`pip install -e .` 済みであること（環境構築を参照）
+- 起動はリポジトリルートで行うこと
+
+#### 環境変数
+
+| 変数 | 説明 |
+|------|------|
+| `API_KEY` | API_KEYは必須です |
+| `API_SCRAPE_ALLOWED_HOST_SUFFIXES` | 許可ホスト（カンマ区切り）。未設定時は `.2ch.sc,2ch.sc` |
+| `API_SCRAPE_TIMEOUT_SEC` | スクレイプのタイムアウト秒（既定: 180） |
+
+#### 起動
+
+systemd設定例
+※thread-crawler-api.service
+
+```bash
+sudo cp thread-crawler-api.service /etc/systemd/system/
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now thread-crawler-api
+sudo systemctl status thread-crawler-api
+```
+
+ヘルスチェック:
+
+```bash
+curl -sS "http://127.0.0.1:8000/health"
+```
+
+#### リクエスト例
+
+```bash
+# 認証あり（起動時の API_KEY と同じ値をヘッダに付与）
+curl -sS -X POST "http://127.0.0.1:8000/scrape" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your-secret-key" \
+  -d '{"url":"https://viper.2ch.sc/test/read.cgi/news4vip/1771308334/"}'
+```
+
+#### ワーカーのみ CLI で実行
+
+```bash
+PYTHONPATH=. .venv/bin/python3 -m crawler.scrape_one_for_api "https://..."
+```
