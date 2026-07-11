@@ -35,8 +35,6 @@ urls.txt
 # Data directories
 data/*
 !data/.gitkeep
-_backup/*
-!_backup/.gitkeep
 
 # Logs
 logs/

@@ -9,16 +9,6 @@ echo "thread-crawler 実行開始"
 echo "=========================================="
 echo ""
 
-# バックアップ処理（現在は無効）
-# echo "[1/4] 古いスレッドデータのバックアップを実行中..."
-# python3 backup_old_threads.py
-# if [ $? -ne 0 ]; then
-#     echo "エラー: バックアップ処理に失敗しました"
-#     exit 1
-# fi
-# echo "バックアップ処理が完了しました"
-# echo ""
-
 # クローラーを実行
 echo "[1/3] クローラーを実行中..."
 PYTHONPATH=$PYTHONPATH:. python3 crawler/main.py "$@"
