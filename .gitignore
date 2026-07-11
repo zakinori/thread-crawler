@@ -35,8 +35,8 @@ urls.txt
 # Data directories
 data/*
 !data/.gitkeep
-_backup/*
-!_backup/.gitkeep
+convert_data/*
+!convert_data/.gitkeep
 
 # Logs
 logs/
@@ -51,3 +51,6 @@ logs/
 # OS specific
 .DS_Store
 Thumbs.db
+
+# systemd
+thread-crawler-api.service

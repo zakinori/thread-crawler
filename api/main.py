@@ -2,12 +2,9 @@
 シンプルスクレイピング用 HTTP API。
 
 環境変数:
-  API_KEY — 設定時はリクエストヘッダ X-API-Key と一致が必要
+  API_KEY — API_KEYは必須です
   API_SCRAPE_ALLOWED_HOST_SUFFIXES — 許可するホスト（カンマ区切り、既定: .2ch.sc,2ch.sc）
   API_SCRAPE_TIMEOUT_SEC — 子プロセスのタイムアウト秒（既定: 180）
-
-起動例（リポジトリルートで）:
-  PYTHONPATH=. uvicorn api.main:app --host 0.0.0.0 --port 8000
 """
 
 from __future__ import annotations
