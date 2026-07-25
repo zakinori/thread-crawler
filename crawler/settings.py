@@ -85,11 +85,6 @@ ITEM_PIPELINES = {
 # データ保存ディレクトリ設定
 DATA_DIR = os.getenv('DATA_DIR', 'data')
 
-# クローラーの制限設定
-CLOSESPIDER_ITEMCOUNT = 1000
-CLOSESPIDER_PAGECOUNT = 100
-CLOSESPIDER_TIMEOUT = 3600  # 1時間でタイムアウト
-
 # スレッドの最小レス数
 MIN_RES_COUNT = 500
 

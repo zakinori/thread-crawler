@@ -85,12 +85,29 @@ class ThreadSpider(scrapy.Spider):
                         # 既存のスレッドかチェック
                         if url in self.existing_threads:
                             existing_thread = self.existing_threads[url]
-                            # レス数が増えている場合のみクロール
-                            if count > existing_thread['res_count']:
-                                self.logger.info(f'既存のスレッドのレス数が増加: {title} (前回: {existing_thread["res_count"]}, 現在: {count})')
-                                # 更新ログに記録
-                                with open(self.update_log_file, 'a', encoding='utf-8') as f:
-                                    f.write(f"{current_time} UPD {title} {url}\n")
+                            thread_id_match = re.search(r'/(\d+)/?$', url)
+                            thread_id = thread_id_match.group(1) if thread_id_match else ''
+                            data_file_exists = (
+                                bool(thread_id)
+                                and (self.thread_data_dir / f'thread_{thread_id}.json').exists()
+                            )
+                            res_increased = count > existing_thread['res_count']
+
+                            # レス数増加、または thread_data が無い場合はクロール
+                            if res_increased or not data_file_exists:
+                                if res_increased:
+                                    self.logger.info(
+                                        f'既存のスレッドのレス数が増加: {title} '
+                                        f'(前回: {existing_thread["res_count"]}, 現在: {count})'
+                                    )
+                                    with open(self.update_log_file, 'a', encoding='utf-8') as f:
+                                        f.write(f"{current_time} UPD {title} {url}\n")
+                                else:
+                                    self.logger.info(
+                                        f'既存スレッドのデータファイルが無いため再クロール: {title} ({url})'
+                                    )
+                                    with open(self.update_log_file, 'a', encoding='utf-8') as f:
+                                        f.write(f"{current_time} RETRY {title} {url}\n")
                                 thread_list.append(thread_info)
                                 yield scrapy.Request(
                                     url=url,
