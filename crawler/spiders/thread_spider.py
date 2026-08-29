@@ -8,6 +8,12 @@ import os
 import glob
 
 
+def get_enable_flag(thread):
+    """有効フラグを返し、旧形式の未設定値は true とする。"""
+    enable = thread.get('enable')
+    return enable if isinstance(enable, bool) else True
+
+
 class ThreadSpider(scrapy.Spider):
     name = "thread_spider"
     
@@ -108,7 +114,11 @@ class ThreadSpider(scrapy.Spider):
                                     )
                                     with open(self.update_log_file, 'a', encoding='utf-8') as f:
                                         f.write(f"{current_time} RETRY {title} {url}\n")
-                                thread_list.append(thread_info)
+                                # 詳細データには管理用の enable を含めず、一覧だけで維持する。
+                                thread_list.append({
+                                    **thread_info,
+                                    'enable': get_enable_flag(existing_thread)
+                                })
                                 yield scrapy.Request(
                                     url=url,
                                     callback=self.parse_thread,
@@ -117,7 +127,8 @@ class ThreadSpider(scrapy.Spider):
                             else:
                                 self.logger.info(f'既存のスレッドをスキップ: {title} (レス数: {count})')
                         else:
-                            thread_list.append(thread_info)
+                            # 新規スレッドは常に有効として一覧へ追加する。
+                            thread_list.append({**thread_info, 'enable': True})
                             self.logger.info(f'新しいスレッドを追加: {title} (レス数: {count})')
                             # 更新ログに記録
                             with open(self.update_log_file, 'a', encoding='utf-8') as f:

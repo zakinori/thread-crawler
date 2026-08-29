@@ -134,7 +134,8 @@ class SeriesThreadSpider(scrapy.Spider):
         # スレッド一覧を更新（thread_list_file がある場合のみ）
         if self.thread_list_file is not None and thread['url'] not in self.existing_threads:
             self.logger.info(f'新しいスレッドを追加: {thread["title"]} (レス数: {thread["res_count"]})')
-            self.existing_threads[thread['url']] = thread
+            # 詳細データとは分け、一覧の新規スレッドは必ず有効として登録する。
+            self.existing_threads[thread['url']] = {**thread, 'enable': True}
             
             # スレッド一覧をJSONファイルに保存
             with open(self.thread_list_file, 'w', encoding='utf-8') as f:
